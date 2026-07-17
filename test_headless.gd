@@ -11,6 +11,21 @@ func check(cond: bool, label: String) -> void:
 		failures.append(label)
 		print("FAIL: " + label)
 
+# true when two boards show the same picture (same cells, same tiles).
+# comparing tile_map_data bytes is NOT reliable: the serialization is not
+# byte-stable across an assign/read round-trip, only the content is.
+func boards_mirror(x: Node, y: Node) -> bool:
+	for layer_name in ["Board", "Active", "Ghost"]:
+		var lx: TileMapLayer = x.get_node(layer_name)
+		var ly: TileMapLayer = y.get_node(layer_name)
+		var cells: Array = lx.get_used_cells()
+		if cells.size() != ly.get_used_cells().size():
+			return false
+		for cell in cells:
+			if lx.get_cell_atlas_coords(cell) != ly.get_cell_atlas_coords(cell):
+				return false
+	return true
+
 func force_piece(m: Node, shape: Array) -> void:
 	m.clear_piece()
 	m.ghost.clear()
@@ -194,6 +209,24 @@ func run_tests() -> void:
 			break
 	check(diverged, "unseeded bag: solo games stay random")
 
+	# --- mirror: capture/apply reproduces the source board exactly ---
+	board_a.new_game(99)
+	board_a.hard_drop()
+	var state: Array = board_a.capture_display()
+	var mirror_board: Node = board_scene.instantiate()
+	root.add_child(mirror_board)
+	mirror_board.apply_display(state)
+	check(boards_mirror(board_a, mirror_board), "mirror: all three layers copied exactly")
+	check(mirror_board.score_label.text == board_a.score_label.text, "mirror: score label copied")
+	check(not mirror_board.game_running, "mirror: applying state does not start the mirror")
+
+	# --- display_changed: emitted on the frame after visible activity ---
+	var pings: Array = [0]
+	board_a.display_changed.connect(func() -> void: pings[0] += 1)
+	board_a.hard_drop() # marks the display dirty
+	await process_frame
+	check(pings[0] >= 1, "mirror: display_changed fires after activity")
+
 	# --- lobby scene loads with the right menus showing ---
 	var lobby: Node = (load("res://scenes/lobby.tscn") as PackedScene).instantiate()
 	root.add_child(lobby)
@@ -206,6 +239,11 @@ func run_tests() -> void:
 	root.add_child(versus)
 	check(versus.get_node("MyBoard").game_running, "versus: my board started")
 	check(not versus.get_node("OpponentBoard").game_running, "versus: opponent board waits")
+
+	# --- versus relay: a received state lands on the mirror board ---
+	versus._receive_display(board_a.capture_display())
+	check(boards_mirror(board_a, versus.get_node("OpponentBoard")),
+			"versus: received state painted onto the mirror")
 
 	print("----")
 	if failures.is_empty():

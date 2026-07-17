@@ -1,9 +1,12 @@
 extends Node2D
 
 # One complete, self-contained Tetris board: playfield, side panels and
-# gameplay logic. A mode scene (solo now, versus later) instances this and
-# calls new_game() to start it — the board never starts itself.
+# gameplay logic. A mode scene (solo or versus) instances this and calls
+# new_game() to start it — the board never starts itself. The board knows
+# nothing about networking: versus mode listens to display_changed and
+# ships capture_display() to the other machine's mirror board.
 signal topped_out
+signal display_changed
 
 # Since Godot 4.3 the TileMap node (one node holding many layers) is
 # deprecated. Each layer is now its own TileMapLayer node, so the board
@@ -125,6 +128,7 @@ var score: int
 var lines: int
 var level: int
 var game_running: bool
+var display_dirty: bool = false #something visible changed this frame
 
 #tilemap variables
 var tile_id: int = 0
@@ -159,10 +163,17 @@ func new_game(bag_seed: int = -1) -> void:
 	next_piece_atlas = Vector2i(shapes_full.find(next_piece_type), 0)
 	update_labels()
 	create_piece()
+	display_dirty = true
 
 func _process(delta: float) -> void:
-	if not game_running:
-		return
+	if game_running:
+		run_frame(delta)
+	#announce changes at most once per frame, even after game over
+	if display_dirty:
+		display_dirty = false
+		display_changed.emit()
+
+func run_frame(delta: float) -> void:
 	handle_horizontal(delta)
 	if Input.is_action_just_pressed("rotate_cw"):
 		try_rotate(1)
@@ -243,10 +254,12 @@ func create_piece() -> void:
 func clear_piece() -> void:
 	for cell in active_piece:
 		active.erase_cell(cur_pos + cell)
+	display_dirty = true
 
 func draw_piece(piece: Array, pos: Vector2i, atlas: Vector2i) -> void:
 	for cell in piece:
 		active.set_cell(pos + cell, tile_id, atlas)
+	display_dirty = true
 
 func try_rotate(dir: int) -> void:
 	var new_index := posmod(rotation_index + dir, 4)
@@ -310,6 +323,7 @@ func update_ghost() -> void:
 	var offset := Vector2i(0, drop_distance())
 	for cell in active_piece:
 		ghost.set_cell(cur_pos + offset + cell, tile_id, piece_atlas)
+	display_dirty = true
 
 func hard_drop() -> void:
 	var dist := drop_distance()
@@ -365,16 +379,19 @@ func land_piece() -> void:
 	for cell in active_piece:
 		active.erase_cell(cur_pos + cell)
 		board.set_cell(cur_pos + cell, tile_id, piece_atlas)
+	display_dirty = true
 
 func clear_next_panel() -> void:
 	for x in range(14, 19):
 		for y in range(5, 9):
 			active.erase_cell(Vector2i(x, y))
+	display_dirty = true
 
 func clear_hold_panel() -> void:
 	for x in range(14, 19):
 		for y in range(10, 15):
 			active.erase_cell(Vector2i(x, y))
+	display_dirty = true
 
 func check_rows() -> int:
 	var cleared := 0
@@ -424,3 +441,25 @@ func check_game_over() -> void:
 	game_over_label.show()
 	game_running = false
 	topped_out.emit()
+
+#--- mirror support: versus mode ships this state to the other machine ----
+
+#everything the other machine needs to draw this board: the three tile
+#layers plus the numbers shown on the labels
+func capture_display() -> Array:
+	return [
+		board.tile_map_data, active.tile_map_data, ghost.tile_map_data,
+		score, lines, level, game_over_label.visible,
+	]
+
+#paints another player's captured state onto this board (mirror use only —
+#this board's own gameplay state is not touched)
+func apply_display(state: Array) -> void:
+	board.tile_map_data = state[0]
+	active.tile_map_data = state[1]
+	ghost.tile_map_data = state[2]
+	score = state[3]
+	lines = state[4]
+	level = state[5]
+	update_labels()
+	game_over_label.visible = state[6]
