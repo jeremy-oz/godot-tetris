@@ -1,2 +1,7 @@
 # Godot 4+ specific ignores
 .godot/
+
+# Reference-only code from other authors (no license — do not commit)
+twentygameschallenge/
+
+.DS_Store

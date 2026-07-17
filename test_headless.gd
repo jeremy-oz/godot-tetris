@@ -24,9 +24,11 @@ func _init() -> void:
 func run_tests() -> void:
 	# _ready only fires once the tree starts iterating, so wait a frame first
 	await process_frame
-	var main: Node = (load("res://scenes/main.tscn") as PackedScene).instantiate()
-	root.add_child(main)
+	var scene: Node = (load("res://scenes/main.tscn") as PackedScene).instantiate()
+	root.add_child(scene)
 	await process_frame
+	# all gameplay lives on the board instance, exactly as in solo mode
+	var main: Node = scene.get_node("Board")
 
 	# --- basic spawn state ---
 	check(main.game_running, "game starts running")
