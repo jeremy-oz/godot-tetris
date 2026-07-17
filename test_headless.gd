@@ -24,7 +24,7 @@ func _init() -> void:
 func run_tests() -> void:
 	# _ready only fires once the tree starts iterating, so wait a frame first
 	await process_frame
-	var scene: Node = (load("res://scenes/main.tscn") as PackedScene).instantiate()
+	var scene: Node = (load("res://scenes/solo.tscn") as PackedScene).instantiate()
 	root.add_child(scene)
 	await process_frame
 	# all gameplay lives on the board instance, exactly as in solo mode
@@ -157,6 +157,55 @@ func run_tests() -> void:
 		main.board.set_cell(Vector2i(x, 1), 0, Vector2i(0, 0))
 	check(main.check_rows() == 1, "top row: clears exactly once")
 	check(main.is_free(Vector2i(5, 1)), "top row: actually emptied")
+
+	# --- seeded bag: same seed deals the identical piece sequence ---
+	var board_scene: PackedScene = load("res://scenes/board.tscn")
+	var board_a: Node = board_scene.instantiate()
+	var board_b: Node = board_scene.instantiate()
+	root.add_child(board_a)
+	root.add_child(board_b)
+	# a board that was never started must look idle, not dead
+	check(not board_a.get_node("GameOverLabel").visible, "fresh board: no game-over label")
+	board_a.new_game(1234)
+	board_b.new_game(1234)
+	var same: bool = board_a.piece_type == board_b.piece_type \
+			and board_a.next_piece_type == board_b.next_piece_type
+	for _i in 20:
+		same = same and board_a.pick_piece() == board_b.pick_piece()
+	check(same, "seeded bag: same seed deals identical pieces")
+
+	# --- seeded bag: different seeds diverge ---
+	board_a.new_game(1)
+	board_b.new_game(2)
+	var diverged := false
+	for _i in 20:
+		if board_a.pick_piece() != board_b.pick_piece():
+			diverged = true
+			break
+	check(diverged, "seeded bag: different seeds deal different pieces")
+
+	# --- unseeded games are not all identical (solo stays random) ---
+	board_a.new_game()
+	board_b.new_game()
+	diverged = false
+	for _i in 30:
+		if board_a.pick_piece() != board_b.pick_piece():
+			diverged = true
+			break
+	check(diverged, "unseeded bag: solo games stay random")
+
+	# --- lobby scene loads with the right menus showing ---
+	var lobby: Node = (load("res://scenes/lobby.tscn") as PackedScene).instantiate()
+	root.add_child(lobby)
+	check(lobby.get_node("MainMenu").visible, "lobby: main menu visible")
+	check(not lobby.get_node("JoinMenu").visible, "lobby: join menu hidden")
+	check(not lobby.get_node("WaitMenu").visible, "lobby: wait menu hidden")
+
+	# --- versus scene: my board runs, opponent board waits for step 3 ---
+	var versus: Node = (load("res://scenes/versus.tscn") as PackedScene).instantiate()
+	root.add_child(versus)
+	check(versus.get_node("MyBoard").game_running, "versus: my board started")
+	check(not versus.get_node("OpponentBoard").game_running, "versus: opponent board waits")
 
 	print("----")
 	if failures.is_empty():

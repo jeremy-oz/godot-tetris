@@ -1,0 +1,106 @@
+[gd_scene load_steps=2 format=4]
+
+[ext_resource type="Script" path="res://lobby.gd" id="1_lobby"]
+
+[node name="Lobby" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_lobby")
+
+[node name="Title" type="Label" parent="."]
+offset_left = 25.0
+offset_top = 80.0
+offset_right = 625.0
+offset_bottom = 170.0
+theme_override_font_sizes/font_size = 60
+text = "TETRIS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MainMenu" type="VBoxContainer" parent="."]
+offset_left = 200.0
+offset_top = 280.0
+offset_right = 450.0
+offset_bottom = 500.0
+theme_override_constants/separation = 20
+
+[node name="SoloButton" type="Button" parent="MainMenu"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "SINGLE PLAYER"
+
+[node name="HostButton" type="Button" parent="MainMenu"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "HOST GAME"
+
+[node name="JoinButton" type="Button" parent="MainMenu"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "JOIN GAME"
+
+[node name="JoinMenu" type="VBoxContainer" parent="."]
+visible = false
+offset_left = 200.0
+offset_top = 280.0
+offset_right = 450.0
+offset_bottom = 500.0
+theme_override_constants/separation = 20
+
+[node name="IpEdit" type="LineEdit" parent="JoinMenu"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+placeholder_text = "Host IP address"
+
+[node name="ConnectButton" type="Button" parent="JoinMenu"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "CONNECT"
+
+[node name="BackButton" type="Button" parent="JoinMenu"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "BACK"
+
+[node name="WaitMenu" type="VBoxContainer" parent="."]
+visible = false
+offset_left = 125.0
+offset_top = 280.0
+offset_right = 525.0
+offset_bottom = 500.0
+theme_override_constants/separation = 30
+
+[node name="WaitLabel" type="Label" parent="WaitMenu"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Waiting..."
+horizontal_alignment = 1
+
+[node name="CancelButton" type="Button" parent="WaitMenu"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "CANCEL"
+
+[node name="StatusLabel" type="Label" parent="."]
+offset_left = 25.0
+offset_top = 560.0
+offset_right = 625.0
+offset_bottom = 610.0
+theme_override_colors/font_color = Color(1, 0.45, 0.45, 1)
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="pressed" from="MainMenu/SoloButton" to="." method="_on_solo_pressed"]
+[connection signal="pressed" from="MainMenu/HostButton" to="." method="_on_host_pressed"]
+[connection signal="pressed" from="MainMenu/JoinButton" to="." method="_on_join_pressed"]
+[connection signal="pressed" from="JoinMenu/ConnectButton" to="." method="_on_connect_pressed"]
+[connection signal="pressed" from="JoinMenu/BackButton" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="WaitMenu/CancelButton" to="." method="_on_cancel_pressed"]

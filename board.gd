@@ -63,6 +63,10 @@ var j := [j_0, j_90, j_180, j_270]
 var shapes := [i, t, o, z, s, l, j]
 var shapes_full := shapes.duplicate()
 
+#bag randomizer — our own generator rather than the global one, so versus
+#mode can seed both players identically and deal them the same pieces
+var rng := RandomNumberGenerator.new()
+
 #grid variables
 const COLS: int = 10
 const ROWS: int = 20
@@ -128,7 +132,13 @@ var piece_atlas: Vector2i
 var next_piece_atlas: Vector2i
 var hold_atlas: Vector2i
 
-func new_game() -> void:
+func new_game(bag_seed: int = -1) -> void:
+	#versus mode passes a shared seed so both players draw identical pieces;
+	#solo passes nothing and gets a fresh random bag
+	if bag_seed >= 0:
+		rng.seed = bag_seed
+	else:
+		rng.randomize()
 	#reset variables
 	score = 0
 	lines = 0
@@ -212,8 +222,9 @@ func fall_interval() -> float:
 func pick_piece() -> Array:
 	if shapes.is_empty():
 		shapes = shapes_full.duplicate()
-	shapes.shuffle()
-	return shapes.pop_front()
+	#Array.shuffle() would use the global RNG, which the two players cannot
+	#share — drawing from the bag with our own generator stays deterministic
+	return shapes.pop_at(rng.randi_range(0, shapes.size() - 1))
 
 func create_piece() -> void:
 	#reset per-piece variables

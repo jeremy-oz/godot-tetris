@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=4 uid="uid://dy527jfht26y8"]
+[gd_scene format=3 uid="uid://c2lala8ttpvwv"]
 
 [ext_resource type="Script" path="res://main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/board.tscn" id="2_board"]
@@ -6,24 +6,24 @@
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_42puf"]
 bg_color = Color(0.443137, 0.643137, 0.643137, 1)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_adx1n"]
-bg_color = Color(0.709804, 0.541176, 0.654902, 1)
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ngyvp"]
 bg_color = Color(0.470588, 0.654902, 0.490196, 1)
 
-[node name="Main" type="Node2D"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_adx1n"]
+bg_color = Color(0.709804, 0.541176, 0.654902, 1)
+
+[node name="Main" type="Node2D" unique_id=2003753115]
 script = ExtResource("1_main")
 
-[node name="Board" parent="." instance=ExtResource("2_board")]
+[node name="Board" parent="." unique_id=1408111270 instance=ExtResource("2_board")]
 
-[node name="StartButton" type="Button" parent="."]
+[node name="StartButton" type="Button" parent="." unique_id=337393313]
 offset_left = 430.0
 offset_top = 645.0
 offset_right = 610.0
 offset_bottom = 685.0
 theme_override_font_sizes/font_size = 28
 theme_override_styles/normal = SubResource("StyleBoxFlat_42puf")
-theme_override_styles/hover = SubResource("StyleBoxFlat_adx1n")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_ngyvp")
+theme_override_styles/hover = SubResource("StyleBoxFlat_adx1n")
 text = "NEW GAME"
