@@ -19,9 +19,9 @@ script = ExtResource("1_main")
 
 [node name="StartButton" type="Button" parent="."]
 offset_left = 430.0
-offset_top = 590.0
+offset_top = 622.0
 offset_right = 610.0
-offset_bottom = 630.0
+offset_bottom = 660.0
 theme_override_font_sizes/font_size = 28
 theme_override_styles/normal = SubResource("StyleBoxFlat_42puf")
 theme_override_styles/hover = SubResource("StyleBoxFlat_adx1n")
@@ -30,9 +30,9 @@ text = "NEW GAME"
 
 [node name="MenuButton" type="Button" parent="."]
 offset_left = 430.0
-offset_top = 640.0
+offset_top = 664.0
 offset_right = 610.0
-offset_bottom = 680.0
+offset_bottom = 700.0
 theme_override_font_sizes/font_size = 28
 theme_override_styles/normal = SubResource("StyleBoxFlat_42puf")
 theme_override_styles/hover = SubResource("StyleBoxFlat_adx1n")
