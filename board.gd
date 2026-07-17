@@ -6,6 +6,7 @@ extends Node2D
 # nothing about networking: versus mode listens to display_changed and
 # ships capture_display() to the other machine's mirror board.
 signal topped_out
+signal lines_cleared(count: int)
 signal display_changed
 
 # Since Godot 4.3 the TileMap node (one node holding many layers) is
@@ -129,6 +130,11 @@ var lines: int
 var level: int
 var game_running: bool
 var display_dirty: bool = false #something visible changed this frame
+
+#garbage attacks (versus mode) — incoming rows wait here and rise from the
+#bottom of the well when the current piece locks, like modern Tetris
+const GARBAGE_ATLAS := Vector2i(7, 0) #same grey tile as the walls
+var pending_garbage: int = 0
 
 #tilemap variables
 var tile_id: int = 0
@@ -361,11 +367,39 @@ func lock_piece() -> void:
 		lines += cleared
 		score += LINE_SCORES[cleared] * level
 		level = mini(1 + floori(lines / 10.0), 20)
+		lines_cleared.emit(cleared)
 	update_labels()
+	if pending_garbage > 0:
+		insert_garbage(pending_garbage)
+		pending_garbage = 0
 	advance_queue()
 	can_hold = true
 	create_piece()
 	check_game_over()
+
+func queue_garbage(count: int) -> void:
+	pending_garbage += count
+
+func insert_garbage(count: int) -> void:
+	count = mini(count, ROWS)
+	#push the whole stack up by that many rows (whatever pokes past the top
+	#of the well vanishes — the next spawn will fail there anyway)
+	for y in range(1, ROWS - count + 1):
+		for col in range(1, COLS + 1):
+			var atlas := board.get_cell_atlas_coords(Vector2i(col, y + count))
+			if atlas == Vector2i(-1, -1):
+				board.erase_cell(Vector2i(col, y))
+			else:
+				board.set_cell(Vector2i(col, y), tile_id, atlas)
+	#fill the freed bottom rows with garbage, one shared hole to dig through
+	var hole := randi_range(1, COLS)
+	for y in range(ROWS - count + 1, ROWS + 1):
+		for col in range(1, COLS + 1):
+			if col == hole:
+				board.erase_cell(Vector2i(col, y))
+			else:
+				board.set_cell(Vector2i(col, y), tile_id, GARBAGE_ATLAS)
+	display_dirty = true
 
 func advance_queue() -> void:
 	piece_type = next_piece_type
@@ -463,3 +497,14 @@ func apply_display(state: Array) -> void:
 	level = state[5]
 	update_labels()
 	game_over_label.visible = state[6]
+
+#returns a mirror board to its blank pre-match look (used on rematch)
+func reset_display() -> void:
+	clear_board()
+	active.clear()
+	ghost.clear()
+	score = 0
+	lines = 0
+	level = 1
+	update_labels()
+	game_over_label.hide()

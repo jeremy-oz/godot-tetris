@@ -245,6 +245,58 @@ func run_tests() -> void:
 	check(boards_mirror(board_a, versus.get_node("OpponentBoard")),
 			"versus: received state painted onto the mirror")
 
+	# --- garbage: queued rows rise from the bottom when the piece locks ---
+	var gboard: Node = board_scene.instantiate()
+	root.add_child(gboard)
+	gboard.new_game(5)
+	gboard.queue_garbage(1)
+	gboard.queue_garbage(2) # attacks accumulate
+	gboard.hard_drop()
+	var glayer: TileMapLayer = gboard.get_node("Board")
+	var garbage_rows_ok := true
+	var holes: Array = []
+	for y in range(18, 21):
+		var filled := 0
+		for col in range(1, 11):
+			if glayer.get_cell_atlas_coords(Vector2i(col, y)) == Vector2i(7, 0):
+				filled += 1
+			elif glayer.get_cell_source_id(Vector2i(col, y)) == -1:
+				holes.append(col)
+		garbage_rows_ok = garbage_rows_ok and filled == 9
+	check(garbage_rows_ok, "garbage: three rows of 9 grey tiles at the bottom")
+	check(holes.size() == 3 and holes[0] == holes[1] and holes[1] == holes[2],
+			"garbage: one shared hole column to dig through")
+	check(gboard.pending_garbage == 0, "garbage: queue emptied after insertion")
+
+	# --- lines_cleared signal reports the clear count ---
+	var clears: Array = [0]
+	gboard.lines_cleared.connect(func(n: int) -> void: clears[0] = n)
+	for x in range(1, 11):
+		glayer.set_cell(Vector2i(x, 20), 0, Vector2i(0, 0))
+	gboard.clear_piece()
+	gboard.cur_pos = Vector2i(4, 2)
+	gboard.draw_piece(gboard.active_piece, gboard.cur_pos, gboard.piece_atlas)
+	gboard.lock_piece()
+	check(clears[0] == 1, "lines_cleared: reports a single clear")
+
+	# --- versus end flow: lose, late-win guard, rematch, win ---
+	versus._on_topped_out() # the RPC inside is a no-op with no peer
+	check(versus.result_label.visible and versus.result_label.text == "YOU LOSE!",
+			"versus: topping out shows YOU LOSE")
+	versus._notify_win() # a win notice arriving after the match ended
+	check(versus.result_label.text == "YOU LOSE!", "versus: late win notice ignored")
+	versus._do_rematch(77)
+	check(not versus.result_label.visible and versus.my_board.game_running,
+			"versus: rematch restarts the board")
+	check(versus.get_node("OpponentBoard/Board").get_used_cells().size() == 64,
+			"versus: rematch blanks the mirror")
+	board_a.new_game(77)
+	check(board_a.piece_type == versus.my_board.piece_type,
+			"versus: rematch seed deals the same pieces")
+	versus._notify_win()
+	check(versus.result_label.text == "YOU WIN!" and not versus.my_board.game_running,
+			"versus: opponent loss shows YOU WIN")
+
 	print("----")
 	if failures.is_empty():
 		print("ALL TESTS PASSED")
