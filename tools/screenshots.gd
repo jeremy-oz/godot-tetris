@@ -85,6 +85,52 @@ func _run() -> void:
 	await _snap("versus.png")
 	versus._notify_win()
 	await _snap("versus-win.png")
+	versus.queue_free()
+	await process_frame
+	# versus widened the window to 1300x704 and nothing but Lobby._ready()
+	# restores it — the remaining stages below are solo-sized, so reset by
+	# hand exactly like Lobby does on the way back from a match
+	root.content_scale_size = Vector2i(650, 704)
+	root.size = Vector2i(650, 704)
+
+	# --- Part 1 base game (the 8dd7449-era look, tutorial Chapter 3's
+	# finished state): no Ghost, Hold panel or Lines/Level panel yet ---
+	var base_solo: Node = (load("res://scenes/solo.tscn") as PackedScene).instantiate()
+	root.add_child(base_solo)
+	var base_board: Node = base_solo.get_node("Board")
+	base_board.new_game(3)
+	base_board.ghost.hide() # doesn't exist until chapter 5
+	base_board.get_node("HoldLabel").hide() # doesn't exist until chapter 7
+	base_board.get_node("HoldPanel").hide()
+	base_board.lines_label.hide() # doesn't exist until chapter 8
+	base_board.level_label.hide()
+	base_solo.get_node("MenuButton").hide() # doesn't exist until chapter 11
+	for _i in 4:
+		base_board.hard_drop() # a few pieces stacked near the bottom
+	for _i in 8:
+		base_board.try_move(Vector2i.DOWN) # walk the next piece mid-well
+	await _snap("base-game.png")
+	base_solo.queue_free()
+	await process_frame
+
+	# --- Chapter 7 state: hold + lock delay just landed, but Lines/Level
+	# (chapter 8) and the MENU button (chapter 11) don't exist yet ---
+	var hold_solo: Node = (load("res://scenes/solo.tscn") as PackedScene).instantiate()
+	root.add_child(hold_solo)
+	var hold_board: Node = hold_solo.get_node("Board")
+	hold_board.new_game(7)
+	hold_board.lines_label.hide() # doesn't exist until chapter 8
+	hold_board.level_label.hide()
+	hold_solo.get_node("MenuButton").hide() # doesn't exist until chapter 11
+	for _i in 2:
+		hold_board.hard_drop() # a small stack for context
+	hold_board.hold_piece() # stash it in the HOLD panel; queue advances
+	for _i in 5:
+		hold_board.try_move(Vector2i.DOWN) # the new active piece, mid-fall
+	await _snap("hold-panel.png")
+	hold_solo.queue_free()
+	await process_frame
+
 	quit(0)
 
 # waits for the next rendered frame, then saves the window to a PNG

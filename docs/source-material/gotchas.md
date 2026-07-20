@@ -102,3 +102,16 @@ Two loose ends we handled explicitly, worth discussing:
   would get different bags. Fix: requests go to the host; only the host
   picks and broadcasts the seed. This is *arbitration*, the seed of the
   entire server-authority topic in the future security module.
+
+## 13. The TileSet atlas got source ID 1, not 0 (blank window)
+
+Hit by the first real tutorial-follower. TileSet source IDs count up and
+deleted IDs are never reused: add the texture atlas, remove it, add it
+again, and it silently becomes `sources/1`. The tutorial code draws with
+source ID 0 (`tile_id`), and `set_cell` with an unknown source renders
+NOTHING — no error, just a blank window. Tutorial must warn at the
+TileSet step: after adding the atlas, check it shows **ID 0** in the
+TileSet panel (or compare `sources/0 =` in the .tscn); if it's 1, delete
+the TileSet and rebuild it in one pass. Debugging hint for students:
+blank window + no errors ⇒ check what `get_cell_source_id` returns vs
+what the TileSet actually contains.

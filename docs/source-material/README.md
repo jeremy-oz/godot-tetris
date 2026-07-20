@@ -60,7 +60,8 @@ game states (needs a real window — rendering does not work headless).
 If code or layout changes, regenerate instead of re-staging by hand.
 
 Available: `lobby.png`, `join-menu.png`, `solo-game.png`, `garbage.png`,
-`wallkick-before.png`, `wallkick-after.png`, `versus.png`, `versus-win.png`
+`wallkick-before.png`, `wallkick-after.png`, `versus.png`, `versus-win.png`,
+`base-game.png`, `hold-panel.png`
 (650×704, versus shots 1300×704). Chapter files state which images they use.
 To stage a new state for a new image, extend `tools/screenshots.gd` — it
 manipulates boards through the same public functions the tests use.
