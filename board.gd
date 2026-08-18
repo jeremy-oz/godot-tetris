@@ -171,6 +171,15 @@ func new_game(bag_seed: int = -1) -> void:
 	create_piece()
 	display_dirty = true
 
+#TEST HELPER (exercise scaffolding): T fills the bottom row except columns
+#7-10, so one flat I-piece finishes the row — instant line-clear test setup
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo \
+			and event.keycode == KEY_T and game_running:
+		for col in range(1, 7):
+			board.set_cell(Vector2i(col, ROWS), tile_id, GARBAGE_ATLAS)
+		update_ghost()
+
 func _process(delta: float) -> void:
 	if game_running:
 		run_frame(delta)
@@ -366,6 +375,8 @@ func lock_piece() -> void:
 	if cleared > 0:
 		lines += cleared
 		score += LINE_SCORES[cleared] * level
+		if is_board_empty():
+			score += 3000 * level #perfect clear!
 		level = mini(1 + floori(lines / 10.0), 20)
 		lines_cleared.emit(cleared)
 	update_labels()
@@ -426,6 +437,15 @@ func clear_hold_panel() -> void:
 		for y in range(10, 15):
 			active.erase_cell(Vector2i(x, y))
 	display_dirty = true
+
+#perfect clear — clearing lines and leaving the whole well empty pays a
+#big bonus, like modern Tetris
+func is_board_empty() -> bool:
+	for y in range(1, ROWS + 1):
+		for col in range(COLS):
+			if not is_free(Vector2i(col, y)):
+				return false
+	return true
 
 func check_rows() -> int:
 	var cleared := 0
