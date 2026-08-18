@@ -223,9 +223,8 @@ func apply_gravity(delta: float) -> void:
 			if not can_move(Vector2i.DOWN):
 				break
 			shift_piece(Vector2i.DOWN)
-			if soft:
-				score += 1
-				update_labels()
+			score += 1
+			update_labels()
 	else:
 		gravity_timer = 0.0
 		lock_timer += delta
