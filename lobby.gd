@@ -55,6 +55,9 @@ func _on_connect_pressed() -> void:
 	var ip := ip_edit.text.strip_edges()
 	if ip.is_empty():
 		ip = "127.0.0.1" #convenient when testing two instances on one machine
+	elif not _looks_like_ip(ip):
+		status_label.text = "Invalid IP address — check it and try again"
+		return
 	var peer := ENetMultiplayerPeer.new()
 	var err := peer.create_client(ip, PORT)
 	if err != OK:
@@ -65,6 +68,12 @@ func _on_connect_pressed() -> void:
 	wait_label.text = "Connecting to " + ip + "..."
 	join_menu.hide()
 	wait_menu.show()
+
+#reject malformed addresses before trying to connect, so the player gets an
+#instant message instead of waiting out a connection timeout
+func _looks_like_ip(text: String) -> bool:
+	#an IPv4 address is four numbers separated by three dots
+	return text.count(".") == 3
 
 func _on_back_pressed() -> void:
 	join_menu.hide()
