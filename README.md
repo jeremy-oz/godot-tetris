@@ -9,6 +9,13 @@ Open the project in Godot 4.7.x and press Play (`F5`). `scenes/main.tscn` is set
 
 Controls: arrow keys — left/right to move, down for soft drop, up to rotate. Click **NEW GAME** to restart.
 
+## Debugging practice branches
+
+The `c8-debug-*` branches (`c8-debug-statements`, `c8-debug-breakpoint`, `c8-debug-rectify`)
+are **permanent exercise branches** for VCE Software Development debugging practice — each
+deliberately contains a seeded bug and a `C8-DEBUG-EXERCISE.md` brief. They are never merged
+into `main`; ignore any "Compare & pull request" prompts for them.
+
 ## What changed in the 4.1 → 4.7 upgrade
 
 The first commit in this repo is the untouched 4.1 tutorial project, so you can see the
