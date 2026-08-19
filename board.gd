@@ -171,15 +171,6 @@ func new_game(bag_seed: int = -1) -> void:
 	create_piece()
 	display_dirty = true
 
-#TEST HELPER (exercise scaffolding): T fills the bottom row except columns
-#7-10, so one flat I-piece finishes the row — instant line-clear test setup
-func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo \
-			and event.keycode == KEY_T and game_running:
-		for col in range(1, 7):
-			board.set_cell(Vector2i(col, ROWS), tile_id, GARBAGE_ATLAS)
-		update_ghost()
-
 func _process(delta: float) -> void:
 	if game_running:
 		run_frame(delta)
