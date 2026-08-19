@@ -34,7 +34,7 @@ Two rows will fail. Those failing rows are your debugging targets — this is ho
 
 ## Now record it — practice for your C8-1 screen recording
 
-Do the cycle **once more from scratch, on camera** (`git reset --hard` back to the branch tip first). Screen-record yourself: run a failing row → breakpoint → diagnose aloud → fix → re-run to green. Narrate the whole time — *test result → diagnosis → fix* — exactly the unbroken take your real C8-1 recording requires.
+Do the cycle **once more from scratch, on camera** (`git reset --hard` back to the branch tip first). Your recording must show **all three skills**: debugging statements, breakpoints, and the rectification. Two rows fail, so locate one with a **debugging statement** (`print_debug` inside `_looks_like_ip`) and the other with a **breakpoint** → diagnose aloud → fix → re-run to green. Narrate the whole time — *test result → diagnosis → fix* — exactly the unbroken take your real C8-1 recording requires.
 
 > **This practice run is NOT your C8-1 evidence.** The real recording must show **your own SAT project** — your git log, your testing table, your code. Tetris is the training ground; your project is the assessment. See the C8-1 recording checklist for the four requirements (continuous narration, unbroken fix cycle, identity anchors, your actual codebase).
 
